@@ -7,6 +7,9 @@ edition = "2018"
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
+chrono = {version = "^0.4", features = ["serde"] }
+uuid = {version = "^0.8", features = ["v4", "serde"] }
+
 gio = "0.8.1"
 glib = "0.9.3"
 pango = "0.8.0"
