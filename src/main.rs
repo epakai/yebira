@@ -1,3 +1,22 @@
+/* 
+ * This file is part of Yebira.
+ *
+ * Copyright 2020 Joshua Honeycutt
+ *
+ * Yebira is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ * 
+ * Yebira is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with Yebira.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 extern crate gio;
 extern crate gtk;
 extern crate glib;
@@ -53,7 +72,18 @@ fn main() {
         ).expect("Application init failed");
 
     uiapp.connect_startup(move |app| {
-        let builder = gtk::Builder::new_from_string(include_str!("yebira.glade"));
+        // In some cases this data may not be byte-aligned resulting in a crash
+        // when the builder is created. The array syntax causes alignment, but
+        // this is undocumented.
+        // https://github.com/gtk-rs/glib/issues/120#issuecomment-250188738
+        let resource_data: &[u8] = &include_bytes!("res/resources.gresource")[..];
+        let bytes = glib::Bytes::from(&resource_data);
+        // more obvious way to load a resource file, not guaranteed aligned
+        //let bytes = glib::Bytes::from_static(
+        //    include_bytes!("res/resources.gresource"));
+        let res = gio::Resource::new_from_data(&bytes).unwrap();
+        gio::resources_register(&res);
+        let builder = gtk::Builder::new_from_resource("/org/drislock/Yebira/gtk/yebira.ui");
         let win: gtk::ApplicationWindow = builder.get_object("YebiraWindow").unwrap();
 
         win.set_application(Some(app));
